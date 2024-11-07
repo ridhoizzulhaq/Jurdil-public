@@ -1,70 +1,130 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# About Our Project
 
-## Available Scripts
+Indonesia, with a population exceeding 270 million, presents a complex electoral landscape, featuring over 800,000 polling stations (Tempat Pemungutan Suara, or TPS) across its vast archipelago. This extensive network poses unique challenges in conducting free, fair, and timely election results. The necessity for a transparent and accountable electoral process is paramount, especially considering issues such as corruption, misinformation, and accessibility that can erode public trust in democracy.
 
-In the project directory, you can run:
+To address these challenges, we propose **Jurdil - Community-Based Election Recap Utilizing Blockchain Technology with Captures**:
 
-### `npm start`
+1. **Data Capture**: Communities can participate by photographing publicly available recap forms (Formulir C1) at each polling station using the Capture Camera in their respective locations. The use of the Capture Camera is essential for ensuring the authenticity and integrity of election data. Each captured image is registered on the blockchain with immutable metadata, including timestamps, device information, and location data, preventing data tampering and providing a transparent record of the election process.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+2. **Data Submission**: The data from the CID (Capture ID) and the votes for each candidate are sent to the smart contract at address **0x94650136923AC64DC428a090c253cFE26Ac18C04** on the Numbers Testnet (snow), facilitating secure, transparent, and decentralized data storage for election recap.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## Jurdil Voting Smart Contract
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+This document provides an overview of the **Jurdil** smart contract, a simple voting system designed to record votes for three candidates in a decentralized manner. This contract serves as a **prototype** and uses basic storage and event logging to meet initial testing and demonstration requirements. Future versions aim to improve decentralization and add error-handling mechanisms.
 
-### `npm run build`
+## Contract Structure
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+The **Jurdil** contract uses a **Poll** struct to represent voting data for each poll ID, recording the following information:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- **candidate1Votes, candidate2Votes, candidate3Votes**: Vote counts for each candidate.
+- **nid**: The National ID (NID) of the voter, stored as a `uint256`. This identifier is intended to represent a unique, hashed voter ID for privacy.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+A mapping called `polls` is used to store each `Poll` struct by `pollId`, allowing for quick access to each poll's voting data.
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Solidity Code
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+contract Jurdil {
+    struct Poll {
+        uint256 candidate1Votes;
+        uint256 candidate2Votes;
+        uint256 candidate3Votes;
+        uint256 nid; // Store NID as uint256 (hashed)
+    }
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+    mapping(uint256 => Poll) public polls;
 
-## Learn More
+    // Event for logging poll creation
+    event PollCreated(
+        uint256 indexed pollId,
+        uint256 nid,
+        uint256 candidate1Votes,
+        uint256 candidate2Votes,
+        uint256 candidate3Votes
+    );
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+    // Function to store a new poll with nid as uint256
+    function storePoll(
+        uint256 pollId,
+        uint256 nid,
+        uint256 candidate1Votes,
+        uint256 candidate2Votes,
+        uint256 candidate3Votes
+    ) public {
+        polls[pollId] = Poll(candidate1Votes, candidate2Votes, candidate3Votes, nid);
+        emit PollCreated(pollId, nid, candidate1Votes, candidate2Votes, candidate3Votes);
+    }
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+    // Function to retrieve poll results by poll ID
+    function getPollResults(uint256 pollId) public view returns (uint256, uint256, uint256, uint256) {
+        Poll memory poll = polls[pollId];
+        return (poll.candidate1Votes, poll.candidate2Votes, poll.candidate3Votes, poll.nid);
+    }
+}
+```
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## React Setup
 
-### Analyzing the Bundle Size
+In the project directory, run the following commands to set up and test the React frontend:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```npm start
+Starts the app in development mode.
+Open http://localhost:3000 to view it in your browser. The page will reload when changes are made, and lint errors will be displayed in the console.
 
-### Making a Progressive Web App
+npm test
+Launches the test runner in interactive watch mode.
+Refer to the React testing documentation for more information.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-### Advanced Configuration
+npm run build
+Builds the app for production in the build folder, optimizing the build for best performance. The build is minified, and filenames include hashes.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-### Deployment
+npm run eject
+Removes the single build dependency for greater customization.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-### `npm run build` fails to minify
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## Express and Database Configuration
+This server setup facilitates storing and retrieving voting event data derived from a Solidity contract into a PostgreSQL database. It uses Express.js as the backend framework, with configuration to support reading and writing Solidity event data.
+
+### Note:
+We will adopt a more decentralized system in the future; the use of PostgreSQL and basic event reading here serves only as a prototype.
+
+---
+
+### Key Components
+
+Express Framework: Manages HTTP requests.
+
+PostgreSQL Database: Stores event data such as poll IDs, vote counts for candidates, and transaction hashes.
+
+CORS: Configured to allow requests from a specific frontend origin.
+
+Environment Setup and Middleware Configuration
+Environment Variables: Sensitive information, like the database URL, is managed using a .env file.
+
+CORS: Cross-origin resource sharing is set up to accept requests from http://localhost:3000.
+
+Body Parser: Parses incoming JSON request bodies.
+
+---
+
+## Configure .env (voting-app-server)
+
+DATABASE_URL= your postgreconfiguration
+
+
